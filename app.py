@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 app = Flask(__name__)
+
+# Load the trained model and the scaler
 regmodel = pickle.load(open('regmodel.pkl', 'rb'))
 scalar = pickle.load(open('scaling.pkl', 'rb'))
 
@@ -13,23 +15,24 @@ def home():
 
 @app.route('/predict_api', methods=['POST'])
 def predict_api():
-    # استلام البيانات
+    # Receive data from the request
     data = request.json['data']
     
-    # تحويل البيانات لـ DataFrame عشان نحافظ على أسماء الأعمدة ونتجنب الـ Warning
-    # الترتيب هنا بيعتمد على ترتيب الـ Keys اللي بتبعتها في الـ JSON
+    # Convert data to a DataFrame to maintain feature names and avoid UserWarnings
+    # The order depends on the keys provided in the JSON input
     df_input = pd.DataFrame([list(data.values())], columns=list(data.keys()))
     
-    # عمل Scaling
+    # Scale the input data using the loaded scaler
     new_data = scalar.transform(df_input)
     
-    # التوقع
+    # Perform prediction using the loaded regression model
     output = regmodel.predict(new_data)
     
-    # تقريب النتيجة لـ 4 أرقام عشرية
+    # Round the final result to 4 decimal places
     final_output = round(float(output[0]), 4)
     
-    print(f"Prediction: {final_output}") # عشان تشوفها في التيرمينال برضه
+    # Print the result to the terminal for debugging purposes
+    print(f"Prediction: {final_output}")
     
     return jsonify(final_output)
 
